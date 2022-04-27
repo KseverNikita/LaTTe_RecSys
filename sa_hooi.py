@@ -19,7 +19,7 @@ from evaluation import topn_recommendations, downvote_seen_items
 from scipy.linalg import solve_triangular
 from polara.lib.sparse import tensor_outer_at
 from scipy.sparse import csr_matrix
-
+from numba import jit
 
 class SeqTFError(Exception):
     pass
@@ -83,6 +83,7 @@ def model_evaluate(recommended_items, holdout, holdout_description, alpha=3, top
     itemid = holdout_description['items']
     rateid = holdout_description['feedback']
     holdout_items = holdout[itemid].values
+    n_test_users = recommended_items.shape[0]
     assert recommended_items.shape[0] == len(holdout_items)
     
     hits_mask = recommended_items[:, :topn] == holdout_items.reshape(-1, 1)
@@ -90,12 +91,12 @@ def model_evaluate(recommended_items, holdout, holdout_description, alpha=3, top
     neg_mask = (holdout[rateid] < alpha).values
     
     # HR calculation
-    hr = np.mean(hits_mask.any(axis=1))
-    hr_pos = np.mean(hits_mask[pos_mask].any(axis=1))
-    hr_neg = np.mean(hits_mask[neg_mask].any(axis=1))
+    #hr = np.sum(hits_mask.any(axis=1)) / n_test_users
+    hr_pos = np.sum(hits_mask[pos_mask].any(axis=1)) / n_test_users
+    hr_neg = np.sum(hits_mask[neg_mask].any(axis=1)) / n_test_users
+    hr = hr_pos + hr_neg
     
     # MRR calculation
-    n_test_users = recommended_items.shape[0]
     hit_rank = np.where(hits_mask)[1] + 1.0
     mrr = np.sum(1 / hit_rank) / n_test_users
     pos_hit_rank = np.where(hits_mask[pos_mask])[1] + 1.0
@@ -104,10 +105,12 @@ def model_evaluate(recommended_items, holdout, holdout_description, alpha=3, top
     mrr_neg = np.sum(1 / neg_hit_rank) / n_test_users
     
     # Matthews correlation
-    TP = np.sum(hits_mask[pos_mask])
-    FP = np.sum(hits_mask[neg_mask])
-    FN = np.sum(topn - hits_mask[pos_mask].sum(axis=1))
-    TN = np.sum(topn - hits_mask[neg_mask].sum(axis=1))
+    TP = np.sum(hits_mask[pos_mask]) # + 
+    FP = np.sum(hits_mask[neg_mask]) # +
+    
+    cond = (hits_mask.sum(axis = 1) == 0)
+    FN = np.sum(cond[pos_mask])
+    TN = np.sum(cond[neg_mask])
     N = TP+FP+TN+FN
     S = (TP+FN)/N
     P = (TP+FP)/N
@@ -227,7 +230,6 @@ def sa_hooi(
         except StopIteration:
             break
     return factors
-
 
 def exp_decay(decay_factor, n):
     return np.e**(-(n-1)*decay_factor)
