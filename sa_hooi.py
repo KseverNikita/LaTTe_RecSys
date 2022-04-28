@@ -24,7 +24,6 @@ from numba import jit
 class SeqTFError(Exception):
     pass
 
-
 def initialize_columnwise_orthonormal(dims, random_state=None):
     if random_state is None:
         random_state = np.random
@@ -48,20 +47,26 @@ def tf_scoring(params, data, data_description, context=["3+4+5"]):
     n_items = data_description['n_items']
     n_ratings = data_description['n_ratings']
     
-    inv_attention = solve_triangular(attention_matrix, np.eye(5), lower=True)
+    inv_attention = solve_triangular(attention_matrix, np.eye(data_description['n_ratings']), lower=True) # NEW
     
     tensor_outer = tensor_outer_at('cpu')
+    matrix_softmax = inv_attention.T @ feedback_factors
     
-    if (context == "5"):
-        inv_aT_feedback = (inv_attention.T @ feedback_factors)[-1, :]
+    if (n_ratings == 10):
+        coef = 2
+    else:
+        coef = 1
+        
+    if (context == "5"): # make softmax 
+        inv_aT_feedback = matrix_softmax[(-1 * coef) , :]
     elif (context == "4+5"):
-        inv_aT_feedback = np.sum((inv_attention.T @ feedback_factors)[-2:, :], axis=0)
+        inv_aT_feedback = np.sum(matrix_softmax[(-2 * coef):, :], axis=0)
     elif (context == "3+4+5"):
-        inv_aT_feedback = np.sum((inv_attention.T @ feedback_factors)[-3:, :], axis=0)
-    elif (context == "2+3+4+5"):
-        inv_aT_feedback = np.sum((inv_attention.T @ feedback_factors)[-4:, :], axis=0)
+        inv_aT_feedback = np.sum(matrix_softmax[(-3 * coef):, :], axis=0)
+    #elif (context == "2+3+4+5"):
+    #    inv_aT_feedback = np.sum(matrix_softmax[-4:, :], axis=0)
     elif (context == "3+4+5-2-1"):
-        inv_aT_feedback = np.sum((inv_attention.T @ feedback_factors)[-3:, :], axis=0) - np.sum((inv_attention.T @ feedback_factors)[:2, :], axis=0)
+        inv_aT_feedback = np.sum(matrix_softmax[(-3 * coef):, :], axis=0) - np.sum(matrix_softmax[:(2 * coef), :], axis=0)
         
     scores = tensor_outer(
         1.0,
@@ -83,6 +88,7 @@ def model_evaluate(recommended_items, holdout, holdout_description, alpha=3, top
     itemid = holdout_description['items']
     rateid = holdout_description['feedback']
     holdout_items = holdout[itemid].values
+    alpha = 3 if holdout_description["n_ratings"] == 5 else 6
     n_test_users = recommended_items.shape[0]
     assert recommended_items.shape[0] == len(holdout_items)
     
