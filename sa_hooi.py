@@ -36,11 +36,13 @@ def tf_scoring(params, data, data_description, context=["3+4+5"]):
     userid = data_description["users"]
     itemid = data_description["items"]
     feedback = data_description["feedback"]
-
+    
+    
     data = data.sort_values(userid)
     useridx = data[userid]
     itemidx = data[itemid].values
     ratings = data[feedback].values
+    
     ratings = ratings - data_description['min_rating']
     
     n_users = useridx.nunique()
