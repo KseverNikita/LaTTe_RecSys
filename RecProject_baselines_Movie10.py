@@ -573,7 +573,7 @@ def full_pipeline(config, training, data_description, testset_valid, holdout_val
     'scaling': [factor] if factor else [0.6], #np.linspace(0, 2, 21),
     'r1': rank_grid, #np.arange(100, 220, 25),
     #'r2': np.arange(50, 801, 25),
-    'r3': range(1, 6, 1)#range(2, 11, 2), # change
+    'r3': range(2, 7, 2)#range(2, 11, 2), # change
     }
 
     grid, param_names = random_grid(tf_hyper, n=0)
