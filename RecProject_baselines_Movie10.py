@@ -12,7 +12,7 @@
 
 import numpy as np
 import pandas as pd
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 
 import polara
 from polara import get_movielens_data
@@ -304,7 +304,7 @@ hr_tf = {}
 mrr_tf = {}
 C_tf = {}
 grid = list(zip(np.meshgrid(rank_grid, f_grid)[0].flatten(), np.meshgrid(rank_grid, f_grid)[1].flatten()))
-for params in tqdm(grid):
+for params in grid:
     r, f = params
     svd_config = {'rank': int(r), 'f': f}
     svd_params = build_svd_model(svd_config, training, data_description)
@@ -590,7 +590,7 @@ def full_pipeline(config, training, data_description, testset_valid, holdout_val
     
     seen_data = testset_valid
     
-    for mlrank in tqdm(tf_grid):
+    for mlrank in tf_grid:
         with io.capture_output() as captured:
             r1, r3 = mlrank[1:]
             cur_mlrank = tuple((r1, r1, r3))
