@@ -287,58 +287,58 @@ def svd_model_scoring(params, data, data_description):
 # In[9]:
 
 
-rank_grid = []
-for i in range(5, 9):
-    rank_grid.append(2 * 2 ** i)
-    rank_grid.append(3 * 2 ** i)
+#rank_grid = []
+#for i in range(5, 9):
+#    rank_grid.append(2 * 2 ** i)
+#    rank_grid.append(3 * 2 ** i)
     
-rank_grid = np.array(rank_grid)
+#rank_grid = np.array(rank_grid)
 
-f_grid = np.linspace(0, 2, 21)
+#f_grid = np.linspace(0, 2, 21)
 
 
 # In[10]:
 
 
-hr_tf = {}
-mrr_tf = {}
-C_tf = {}
-grid = list(zip(np.meshgrid(rank_grid, f_grid)[0].flatten(), np.meshgrid(rank_grid, f_grid)[1].flatten()))
-for params in grid:
-    r, f = params
-    svd_config = {'rank': int(r), 'f': f}
-    svd_params = build_svd_model(svd_config, training, data_description)
-    svd_scores = svd_model_scoring(svd_params, testset_valid, data_description)
-    downvote_seen_items(svd_scores, testset_valid, data_description)
-    svd_recs = topn_recommendations(svd_scores, topn=10)
-    hr, hr_pos, hr_neg, mrr, mrr_pos, mrr_neg, cov, C = model_evaluate(svd_recs, holdout_valid, data_description, alpha=3, topn=10, dcg=False)
-    hr_tf[f'r={r}, f={f:.2f}'] = hr
-    mrr_tf[f'r={r}, f={f:.2f}'] = mrr
-    C_tf[f'r={r}, f={f:.2f}'] = C
+#hr_tf = {}
+#mrr_tf = {}
+#C_tf = {}
+#grid = list(zip(np.meshgrid(rank_grid, f_grid)[0].flatten(), np.meshgrid(rank_grid, f_grid)[1].flatten()))
+#for params in grid:
+#    r, f = params
+#    svd_config = {'rank': int(r), 'f': f}
+#    svd_params = build_svd_model(svd_config, training, data_description)
+#    svd_scores = svd_model_scoring(svd_params, testset_valid, data_description)
+#    downvote_seen_items(svd_scores, testset_valid, data_description)
+#    svd_recs = topn_recommendations(svd_scores, topn=10)
+#    hr, hr_pos, hr_neg, mrr, mrr_pos, mrr_neg, cov, C = model_evaluate(svd_recs, holdout_valid, data_description, alpha=3, topn=10, dcg=False)
+#    hr_tf[f'r={r}, f={f:.2f}'] = hr
+#    mrr_tf[f'r={r}, f={f:.2f}'] = mrr
+#    C_tf[f'r={r}, f={f:.2f}'] = C
 
 
 # In[12]:
 
 
-hr_sorted = sorted(hr_tf, key=hr_tf.get, reverse=True)
-for i in range(1):
-    print(hr_sorted[i], hr_tf[hr_sorted[i]])
+#hr_sorted = sorted(hr_tf, key=hr_tf.get, reverse=True)
+#for i in range(1):
+#    print(hr_sorted[i], hr_tf[hr_sorted[i]])
 
 
 # In[13]:
 
 
-mrr_sorted = sorted(mrr_tf, key=mrr_tf.get, reverse=True)
-for i in range(1):
-    print(mrr_sorted[i], mrr_tf[mrr_sorted[i]])
+#mrr_sorted = sorted(mrr_tf, key=mrr_tf.get, reverse=True)
+#for i in range(1):
+#    print(mrr_sorted[i], mrr_tf[mrr_sorted[i]])
 
 
 # In[14]:
 
 
-C_sorted = sorted(C_tf, key=C_tf.get, reverse=True)
-for i in range(1):
-    print(C_sorted[i], C_tf[C_sorted[i]])
+#C_sorted = sorted(C_tf, key=C_tf.get, reverse=True)
+#for i in range(1):
+#    print(C_sorted[i], C_tf[C_sorted[i]])
 
 
 # # Test metrics
@@ -346,17 +346,17 @@ for i in range(1):
 # In[15]:
 
 
-data_description = dict(
-    users = data_index['users'].name,
-    items = data_index['items'].name,
-    feedback = 'rating',
-    n_users = len(data_index['users']),
-    n_items = len(data_index['items']),
-    n_ratings = training['rating'].nunique(),
-    min_rating = training['rating'].min(),
-    test_users = holdout[data_index['users'].name].drop_duplicates().values,
-    n_test_users = holdout[data_index['users'].name].nunique()
-)
+#data_description = dict(
+#    users = data_index['users'].name,
+#    items = data_index['items'].name,
+#    feedback = 'rating',
+#    n_users = len(data_index['users']),
+#    n_items = len(data_index['items']),
+#    n_ratings = training['rating'].nunique(),
+#    min_rating = training['rating'].min(),
+#    test_users = holdout[data_index['users'].name].drop_duplicates().values,
+#    n_test_users = holdout[data_index['users'].name].nunique()
+#)
 
 
 # ## Random model
@@ -364,11 +364,11 @@ data_description = dict(
 # In[16]:
 
 
-rnd_params = build_random_model(training, data_description)
-rnd_scores = random_model_scoring(rnd_params, None, data_description)
-downvote_seen_items(rnd_scores, testset, data_description)
+#rnd_params = build_random_model(training, data_description)
+#rnd_scores = random_model_scoring(rnd_params, None, data_description)
+#downvote_seen_items(rnd_scores, testset, data_description)
 
-_ = make_prediction(rnd_scores, holdout, data_description, mode="Test")
+#_ = make_prediction(rnd_scores, holdout, data_description, mode="Test")
 
 
 # ## Popularity-based model
@@ -376,15 +376,15 @@ _ = make_prediction(rnd_scores, holdout, data_description, mode="Test")
 # In[17]:
 
 
-pop_params = build_popularity_model(training, data_description)
-pop_scores = popularity_model_scoring(pop_params, None, data_description)
-downvote_seen_items(pop_scores, testset, data_description)
+#pop_params = build_popularity_model(training, data_description)
+#pop_scores = popularity_model_scoring(pop_params, None, data_description)
+#downvote_seen_items(pop_scores, testset, data_description)
 
 
 # In[18]:
 
 
-_ = make_prediction(pop_scores, holdout, data_description, mode="Test")
+#_ = make_prediction(pop_scores, holdout, data_description, mode="Test")
 
 
 # ## PureSVD
@@ -392,23 +392,23 @@ _ = make_prediction(pop_scores, holdout, data_description, mode="Test")
 # In[19]:
 
 
-for_hr = sorted(hr_tf, key=hr_tf.get, reverse=True)[0]
-for_mrr = sorted(mrr_tf, key=mrr_tf.get, reverse=True)[0]
-for_mc = sorted(C_tf, key=C_tf.get, reverse=True)[0]
+#for_hr = sorted(hr_tf, key=hr_tf.get, reverse=True)[0]
+#for_mrr = sorted(mrr_tf, key=mrr_tf.get, reverse=True)[0]
+#for_mc = sorted(C_tf, key=C_tf.get, reverse=True)[0]
 
-svd_config_hr = {'rank': int(for_hr.split(",")[0][2:]), 'f': float(for_hr.split(",")[1][3:])}
-svd_config_mrr = {'rank': int(for_mrr.split(",")[0][2:]), 'f': float(for_mrr.split(",")[1][3:])}
-svd_config_mc = {'rank': int(for_mc.split(",")[0][2:]), 'f': float(for_mc.split(",")[1][3:])}
+#svd_config_hr = {'rank': int(for_hr.split(",")[0][2:]), 'f': float(for_hr.split(",")[1][3:])}
+#svd_config_mrr = {'rank': int(for_mrr.split(",")[0][2:]), 'f': float(for_mrr.split(",")[1][3:])}
+#svd_config_mc = {'rank': int(for_mc.split(",")[0][2:]), 'f': float(for_mc.split(",")[1][3:])}
 
-svd_configs = [(svd_config_hr, "HR"), (svd_config_mrr, "MRR"), (svd_config_mc, "MC")]
+#svd_configs = [(svd_config_hr, "HR"), (svd_config_mrr, "MRR"), (svd_config_mc, "MC")]
 
-for svd_config in svd_configs:
-    print(svd_config)
-    svd_params = build_svd_model(svd_config[0], training, data_description)
-    svd_scores = svd_model_scoring(svd_params, testset, data_description)
-    downvote_seen_items(svd_scores, testset, data_description)
+#for svd_config in svd_configs:
+#    print(svd_config)
+#    svd_params = build_svd_model(svd_config[0], training, data_description)
+#    svd_scores = svd_model_scoring(svd_params, testset, data_description)
+#    downvote_seen_items(svd_scores, testset, data_description)
 
-    _ = make_prediction(svd_scores, holdout, data_description, mode="Test")
+#    _ = make_prediction(svd_scores, holdout, data_description, mode="Test")
 
 
 # # CoFFee
@@ -564,7 +564,7 @@ def full_pipeline(config, training, data_description, testset_valid, holdout_val
     print(f"Tuning model for all contexts...\n")
 
     rank_grid = []
-    for i in range(5, 9):
+    for i in range(5, 8):
         rank_grid.append(2 * 2 ** i)
         rank_grid.append(3 * 2 ** i)
     
@@ -664,7 +664,7 @@ def full_pipeline(config, training, data_description, testset_valid, holdout_val
 
 
 attention_matrix = np.eye(10)
-full_pipeline(config, training, data_description, testset_valid, holdout_valid, testset, holdout, attention_matrix=attention_matrix, factor = float(for_mc.split(",")[1][3:]))
+full_pipeline(config, training, data_description, testset_valid, holdout_valid, testset, holdout, attention_matrix=attention_matrix, factor = 0.6)
 
 
 # ## Attention matrix
@@ -725,7 +725,7 @@ for mode in modes:
     print(f"FOR matrix - {mode}")
     similarity_matrix = get_similarity_matrix(mode, data_description["n_ratings"])
     attention_matrix = sqrtm(similarity_matrix).real
-    full_pipeline(config, training, data_description, testset_valid, holdout_valid, testset, holdout, attention_matrix=attention_matrix, factor = float(for_mc.split(",")[1][3:]))
+    full_pipeline(config, training, data_description, testset_valid, holdout_valid, testset, holdout, attention_matrix=attention_matrix, factor = 0.6)
     print("_____________________________________________________")
 
 
