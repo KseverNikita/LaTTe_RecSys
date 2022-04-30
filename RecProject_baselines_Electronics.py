@@ -42,8 +42,40 @@ import pandas as pd
 # In[ ]:
 
 
-col_names = ['userid', 'movieid', 'rating', 'timestamp']
-data = pd.read_csv("Electronics.csv", names=col_names)
+import sys
+import gzip
+import tempfile
+from io import BytesIO
+from ast import literal_eval
+from  urllib import request
+import pandas as pd
+
+
+def amazon_data_reader(path):
+    with gzip.open(path, 'rt') as gz:
+        for line in gz:
+            yield literal_eval(line)
+
+def read_amazon_data(path=None, name=None):
+    '''Data is taken from https://jmcauley.ucsd.edu/data/amazon/'''
+    if path is None and name is None:
+            raise ValueError('Either the name of the dataset to download \
+                or a path to a local file must be specified.')
+    if path is None:
+        file_url = f'http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_{name}_5.json.gz'
+        print(f'Downloading data from: {file_url}')
+        with request.urlopen(file_url) as response:
+            file = response.read()
+            with tempfile.NamedTemporaryFile(delete=False) as temp:
+                temp.write(file)
+                path = temp.name
+                print(f'Temporarily saved file at: {path}')
+    return pd.DataFrame.from_records(
+        amazon_data_reader(path),
+        columns=['userid', 'movieid', 'rating', 'timestamp']
+    )
+
+data = read_amazon_data(name = "Electronics")
 
 
 # In[3]:
