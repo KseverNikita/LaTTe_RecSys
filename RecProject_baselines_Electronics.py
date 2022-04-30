@@ -72,10 +72,11 @@ def read_amazon_data(path=None, name=None):
                 print(f'Temporarily saved file at: {path}')
     return pd.DataFrame.from_records(
         amazon_data_reader(path),
-        columns=['userid', 'movieid', 'rating', 'timestamp']
+        columns=['reviewerID', 'asin', 'overall', 'unixReviewTime']
     )
 
 data = read_amazon_data(name = "Electronics")
+data.rename(columns = {'reviewerID' : 'userid', 'asin' : 'movieid', "overall" : "rating", "unixReviewTime" : "timestamp"}, inplace = True)
 
 
 # In[3]:
