@@ -94,10 +94,10 @@ def full_preproccessing(data = None):
     )
     
     labels, levels = pd.factorize(data.movieid)
-    data.movieid = labels
+    data.loc[:, 'movieid'] = labels
 
     labels, levels = pd.factorize(data.userid)
-    data.userid = labels
+    data.loc[:, 'userid'] = labels
     
     if (data["rating"].nunique() > 5):
         data["rating"] = data["rating"] * 2
