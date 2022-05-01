@@ -1,23 +1,12 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
-pip3 install --no-cache-dir --upgrade git+https://github.com/evfro/polara.git@develop#egg=polara
-
-
-# In[6]:
-
 import os
-os.environ["OMP_NUM_THREADS"] = 8
-os.environ["MKL_NUM_THREADS"] = 8
-os.environ["NUMBA_NUM_THREADS"] = 8
+os.environ["OMP_NUM_THREADS"] = "10"
+os.environ["MKL_NUM_THREADS"] = "10"
+os.environ["NUMBA_NUM_THREADS"] = "10"
 
 
 import numpy as np
 import pandas as pd
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 
 import polara
 from polara import get_movielens_data
@@ -231,7 +220,7 @@ def matrix_from_observations(data, data_description):
     useridx = data[data_description['users']]
     itemidx = data[data_description['items']]
     values = data[data_description['feedback']]
-    return csr_matrix((values, (useridx, itemidx)), dtype='f8')
+    return csr_matrix((values, (useridx, itemidx)), shape=(useridx.values.max() + 1, data_description["n_items"]), dtype='f8')
 
     
 def easer(data, data_description, lmbda=500):
@@ -333,4 +322,3 @@ easer_scores = easer_scoring(easer_params, testset, data_description)
 downvote_seen_items(easer_scores, testset, data_description)
 
 make_prediction(easer_scores, holdout, data_description, mode='Test')
-
