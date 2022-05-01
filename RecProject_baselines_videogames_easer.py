@@ -10,14 +10,14 @@ pip3 install --no-cache-dir --upgrade git+https://github.com/evfro/polara.git@de
 # In[2]:
 
 import os
-os.environ["OMP_NUM_THREADS"] = 8
-os.environ["MKL_NUM_THREADS"] = 8
-os.environ["NUMBA_NUM_THREADS"] = 8
+os.environ["OMP_NUM_THREADS"] = "8"
+os.environ["MKL_NUM_THREADS"] = "8"
+os.environ["NUMBA_NUM_THREADS"] = "8"
 
 
 import numpy as np
 import pandas as pd
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 
 import polara
 from polara import get_movielens_data
