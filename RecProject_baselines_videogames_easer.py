@@ -1,18 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
-
-
-pip3 install --no-cache-dir --upgrade git+https://github.com/evfro/polara.git@develop#egg=polara
-
-
 # In[2]:
 
 import os
-os.environ["OMP_NUM_THREADS"] = "8"
-os.environ["MKL_NUM_THREADS"] = "8"
-os.environ["NUMBA_NUM_THREADS"] = "8"
+os.environ["OMP_NUM_THREADS"] = "10"
+os.environ["MKL_NUM_THREADS"] = "10"
+os.environ["NUMBA_NUM_THREADS"] = "10"
 
 
 import numpy as np
