@@ -774,7 +774,7 @@ def get_similarity_matrix(mode, n_ratings = 10):
 
 matrices = []
 config["params"] = {}
-modes = ["sq3", "linear", "arctan"]
+modes = ["arctan", "linear"]
 
 for mode in modes:
     print(f"FOR matrix - {mode}")
