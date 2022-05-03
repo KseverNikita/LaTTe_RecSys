@@ -215,9 +215,9 @@ def model_evaluate(recommended_items, holdout, holdout_description, alpha=3, top
 def make_prediction(tf_scores, holdout, data_description, mode, context="", print_mode=True):
     if (mode and print_mode):
         print(f"for context {context} evaluation ({mode}): \n")
+    tf_recs = topn_recommendations(tf_scores, 20)
     for n in [5, 10, 20]:
-        tf_recs = topn_recommendations(tf_scores, n)
-        hr, hr_pos, hr_neg, mrr, mrr_pos, mrr_neg, cov, C = model_evaluate(tf_recs, holdout, data_description, topn=n)
+        hr, hr_pos, hr_neg, mrr, mrr_pos, mrr_neg, cov, C = model_evaluate(tf_recs[:, :n], holdout, data_description, topn=n)
         if (print_mode):
             print(f"HR@{n} = {hr:.4f}, MRR@{n} = {mrr:.4f}, Coverage@{n} = {cov:.4f}")
             print(f"HR_pos@{n} = {hr_pos:.4f}, HR_neg@{n} = {hr_neg:.4f}")
@@ -327,134 +327,135 @@ def svd_model_scoring(params, data, data_description):
 # In[9]:
 
 
-rank_grid = []
-for i in range(5, 9):
-    rank_grid.append(2 * 2 ** i)
-    rank_grid.append(3 * 2 ** i)
+# rank_grid = []
+# for i in range(5, 9):
+#     rank_grid.append(2 * 2 ** i)
+#     rank_grid.append(3 * 2 ** i)
     
-rank_grid = np.array(rank_grid)
+# rank_grid = np.array(rank_grid)
 
-f_grid = np.linspace(0, 2, 21)
-
-
-# In[10]:
+# f_grid = np.linspace(0, 2, 21)
 
 
-hr_tf = {}
-mrr_tf = {}
-C_tf = {}
-grid = list(zip(np.meshgrid(rank_grid, f_grid)[0].flatten(), np.meshgrid(rank_grid, f_grid)[1].flatten()))
-for params in grid:
-    r, f = params
-    svd_config = {'rank': int(r), 'f': f}
-    svd_params = build_svd_model(svd_config, training, data_description)
-    svd_scores = svd_model_scoring(svd_params, testset_valid, data_description)
-    downvote_seen_items(svd_scores, testset_valid, data_description)
-    svd_recs = topn_recommendations(svd_scores, topn=10)
-    hr, hr_pos, hr_neg, mrr, mrr_pos, mrr_neg, cov, C = model_evaluate(svd_recs, holdout_valid, data_description, alpha=3, topn=10, dcg=False)
-    hr_tf[f'r={r}, f={f:.2f}'] = hr
-    mrr_tf[f'r={r}, f={f:.2f}'] = mrr
-    C_tf[f'r={r}, f={f:.2f}'] = C
+# # In[10]:
 
 
-# In[12]:
+# hr_tf = {}
+# mrr_tf = {}
+# C_tf = {}
+# grid = list(zip(np.meshgrid(rank_grid, f_grid)[0].flatten(), np.meshgrid(rank_grid, f_grid)[1].flatten()))
+# for params in grid:
+#     r, f = params
+#     svd_config = {'rank': int(r), 'f': f}
+#     svd_params = build_svd_model(svd_config, training, data_description)
+#     svd_scores = svd_model_scoring(svd_params, testset_valid, data_description)
+#     downvote_seen_items(svd_scores, testset_valid, data_description)
+#     svd_recs = topn_recommendations(svd_scores, topn=10)
+#     hr, hr_pos, hr_neg, mrr, mrr_pos, mrr_neg, cov, C = model_evaluate(svd_recs, holdout_valid, data_description, alpha=3, topn=10, dcg=False)
+#     hr_tf[f'r={r}, f={f:.2f}'] = hr
+#     mrr_tf[f'r={r}, f={f:.2f}'] = mrr
+#     C_tf[f'r={r}, f={f:.2f}'] = C
 
 
-hr_sorted = sorted(hr_tf, key=hr_tf.get, reverse=True)
-for i in range(1):
-    print(hr_sorted[i], hr_tf[hr_sorted[i]])
+# # In[12]:
 
 
-# In[13]:
+# hr_sorted = sorted(hr_tf, key=hr_tf.get, reverse=True)
+# for i in range(1):
+#     print(hr_sorted[i], hr_tf[hr_sorted[i]])
 
 
-mrr_sorted = sorted(mrr_tf, key=mrr_tf.get, reverse=True)
-for i in range(1):
-    print(mrr_sorted[i], mrr_tf[mrr_sorted[i]])
+# # In[13]:
 
 
-# In[14]:
+# mrr_sorted = sorted(mrr_tf, key=mrr_tf.get, reverse=True)
+# for i in range(1):
+#     print(mrr_sorted[i], mrr_tf[mrr_sorted[i]])
 
 
-C_sorted = sorted(C_tf, key=C_tf.get, reverse=True)
-for i in range(1):
-    print(C_sorted[i], C_tf[C_sorted[i]])
+# # In[14]:
 
 
-# # Test metrics
-
-# In[15]:
-
-
-data_description = dict(
-    users = data_index['users'].name,
-    items = data_index['items'].name,
-    feedback = 'rating',
-    n_users = len(data_index['users']),
-    n_items = len(data_index['items']),
-    n_ratings = training['rating'].nunique(),
-    min_rating = training['rating'].min(),
-    test_users = holdout[data_index['users'].name].drop_duplicates().values,
-    n_test_users = holdout[data_index['users'].name].nunique()
-)
+# C_sorted = sorted(C_tf, key=C_tf.get, reverse=True)
+# for i in range(1):
+#     print(C_sorted[i], C_tf[C_sorted[i]])
 
 
-# ## Random model
+# # # Test metrics
 
-# In[16]:
-
-
-rnd_params = build_random_model(training, data_description)
-rnd_scores = random_model_scoring(rnd_params, None, data_description)
-downvote_seen_items(rnd_scores, testset, data_description)
-
-_ = make_prediction(rnd_scores, holdout, data_description, mode="Test")
+# # In[15]:
 
 
-# ## Popularity-based model
-
-# In[17]:
-
-
-pop_params = build_popularity_model(training, data_description)
-pop_scores = popularity_model_scoring(pop_params, None, data_description)
-downvote_seen_items(pop_scores, testset, data_description)
-
-
-# In[18]:
-
-
-_ = make_prediction(pop_scores, holdout, data_description, mode="Test")
+# data_description = dict(
+#     users = data_index['users'].name,
+#     items = data_index['items'].name,
+#     feedback = 'rating',
+#     n_users = len(data_index['users']),
+#     n_items = len(data_index['items']),
+#     n_ratings = training['rating'].nunique(),
+#     min_rating = training['rating'].min(),
+#     test_users = holdout[data_index['users'].name].drop_duplicates().values,
+#     n_test_users = holdout[data_index['users'].name].nunique()
+# )
 
 
-# ## PureSVD
+# # ## Random model
 
-# In[19]:
+# # In[16]:
 
 
-for_hr = sorted(hr_tf, key=hr_tf.get, reverse=True)[0]
-for_mrr = sorted(mrr_tf, key=mrr_tf.get, reverse=True)[0]
-for_mc = sorted(C_tf, key=C_tf.get, reverse=True)[0]
+# rnd_params = build_random_model(training, data_description)
+# rnd_scores = random_model_scoring(rnd_params, None, data_description)
+# downvote_seen_items(rnd_scores, testset, data_description)
 
-svd_config_hr = {'rank': int(for_hr.split(",")[0][2:]), 'f': float(for_hr.split(",")[1][3:])}
-svd_config_mrr = {'rank': int(for_mrr.split(",")[0][2:]), 'f': float(for_mrr.split(",")[1][3:])}
-svd_config_mc = {'rank': int(for_mc.split(",")[0][2:]), 'f': float(for_mc.split(",")[1][3:])}
+# _ = make_prediction(rnd_scores, holdout, data_description, mode="Test")
 
-svd_configs = [(svd_config_hr, "HR"), (svd_config_mrr, "MRR"), (svd_config_mc, "MC")]
 
-for svd_config in svd_configs:
-    print(svd_config)
-    svd_params = build_svd_model(svd_config[0], training, data_description)
-    svd_scores = svd_model_scoring(svd_params, testset, data_description)
-    downvote_seen_items(svd_scores, testset, data_description)
+# # ## Popularity-based model
 
-    _ = make_prediction(svd_scores, holdout, data_description, mode="Test")
+# # In[17]:
+
+
+# pop_params = build_popularity_model(training, data_description)
+# pop_scores = popularity_model_scoring(pop_params, None, data_description)
+# downvote_seen_items(pop_scores, testset, data_description)
+
+
+# # In[18]:
+
+
+# _ = make_prediction(pop_scores, holdout, data_description, mode="Test")
+
+
+# # ## PureSVD
+
+# # In[19]:
+
+
+# for_hr = sorted(hr_tf, key=hr_tf.get, reverse=True)[0]
+# for_mrr = sorted(mrr_tf, key=mrr_tf.get, reverse=True)[0]
+# for_mc = sorted(C_tf, key=C_tf.get, reverse=True)[0]
+
+# svd_config_hr = {'rank': int(for_hr.split(",")[0][2:]), 'f': float(for_hr.split(",")[1][3:])}
+# svd_config_mrr = {'rank': int(for_mrr.split(",")[0][2:]), 'f': float(for_mrr.split(",")[1][3:])}
+# svd_config_mc = {'rank': int(for_mc.split(",")[0][2:]), 'f': float(for_mc.split(",")[1][3:])}
+
+# svd_configs = [(svd_config_hr, "HR"), (svd_config_mrr, "MRR"), (svd_config_mc, "MC")]
+
+# for svd_config in svd_configs:
+#     print(svd_config)
+#     svd_params = build_svd_model(svd_config[0], training, data_description)
+#     svd_scores = svd_model_scoring(svd_params, testset, data_description)
+#     downvote_seen_items(svd_scores, testset, data_description)
+
+#     _ = make_prediction(svd_scores, holdout, data_description, mode="Test")
 
 
 # # CoFFee
 
 # In[20]:
 
+factor = 0.5 # CHANGE
 
 from IPython.utils import io
 from scipy.special import softmax
@@ -758,7 +759,7 @@ def get_similarity_matrix(mode, n_ratings = 10):
 
 matrices = []
 config["params"] = {}
-modes = [ "linear", "sq3", "sigmoid", "arctan"]
+modes = ["sigmoid", "arctan"] #  "linear", "sq3", 
 
 for mode in modes:
     print(f"FOR matrix - {mode}")
@@ -770,125 +771,125 @@ for mode in modes:
 
 # In[ ]:
 
-print("EASER")
+# print("EASER")
 
-data_description = dict(
-        users = data_index['users'].name,
-        items = data_index['items'].name,
-        feedback = 'rating',
-        n_users = len(data_index['users']),
-        n_items = len(data_index['items']),
-        n_ratings = training['rating'].nunique(),
-        min_rating = training['rating'].min(),
-        test_users = holdout_valid[data_index['users'].name].drop_duplicates().values, # NEW
-        n_test_users = holdout_valid[data_index['users'].name].nunique() # NEW
-)
+# data_description = dict(
+#         users = data_index['users'].name,
+#         items = data_index['items'].name,
+#         feedback = 'rating',
+#         n_users = len(data_index['users']),
+#         n_items = len(data_index['items']),
+#         n_ratings = training['rating'].nunique(),
+#         min_rating = training['rating'].min(),
+#         test_users = holdout_valid[data_index['users'].name].drop_duplicates().values, # NEW
+#         n_test_users = holdout_valid[data_index['users'].name].nunique() # NEW
+# )
 
-def matrix_from_observations(data, data_description):
-    useridx = data[data_description['users']]
-    itemidx = data[data_description['items']]
-    values = data[data_description['feedback']]
-    return csr_matrix((values, (useridx, itemidx)), shape=(useridx.values.max() + 1, data_description["n_items"]), dtype='f8')
+# def matrix_from_observations(data, data_description):
+#     useridx = data[data_description['users']]
+#     itemidx = data[data_description['items']]
+#     values = data[data_description['feedback']]
+#     return csr_matrix((values, (useridx, itemidx)), shape=(useridx.values.max() + 1, data_description["n_items"]), dtype='f8')
 
     
-def easer(data, data_description, lmbda=500):
-    X = matrix_from_observations(data, data_description)
-    G = X.T.dot(X)
-    diag_indices = np.diag_indices(G.shape[0])
-    G[diag_indices] += lmbda
-    P = np.linalg.inv(G.A)
-    B = P / (-np.diag(P))
-    B[diag_indices] = 0
+# def easer(data, data_description, lmbda=500):
+#     X = matrix_from_observations(data, data_description)
+#     G = X.T.dot(X)
+#     diag_indices = np.diag_indices(G.shape[0])
+#     G[diag_indices] += lmbda
+#     P = np.linalg.inv(G.A)
+#     B = P / (-np.diag(P))
+#     B[diag_indices] = 0
     
-    return B
+#     return B
 
-def easer_scoring(params, data, data_description):
-    item_factors = params
-    test_data = data.assign(
-        userid = pd.factorize(data['userid'])[0]
-    )
-    test_matrix = matrix_from_observations(test_data, data_description)
-    scores = test_matrix.dot(item_factors)
-    return scores
-
-
-# ## Tuning
-
-# In[8]:
+# def easer_scoring(params, data, data_description):
+#     item_factors = params
+#     test_data = data.assign(
+#         userid = pd.factorize(data['userid'])[0]
+#     )
+#     test_matrix = matrix_from_observations(test_data, data_description)
+#     scores = test_matrix.dot(item_factors)
+#     return scores
 
 
-lambda_grid = np.arange(50, 1000, 50)
-# lambda_grid = np.arange(5, 55, 5)
+# # ## Tuning
+
+# # In[8]:
 
 
-# In[9]:
+# lambda_grid = np.arange(50, 1000, 50)
+# # lambda_grid = np.arange(5, 55, 5)
 
 
-hr_tf = {}
-mrr_tf = {}
-C_tf = {}
-for lmbda in tqdm(lambda_grid):
-    easer_params = easer(training, data_description, lmbda=lmbda)
-    easer_scores = easer_scoring(easer_params, testset_valid, data_description)
-    downvote_seen_items(easer_scores, testset_valid, data_description)
-    easer_recs = topn_recommendations(easer_scores, topn=10)
-    hr, hr_pos, hr_neg, mrr, mrr_pos, mrr_neg, cov, C = model_evaluate(easer_recs, holdout_valid, data_description, alpha=3, topn=10, dcg=False)
-    hr_tf[lmbda] = hr
-    mrr_tf[lmbda] = mrr
-    C_tf[lmbda] = C
+# # In[9]:
 
 
-# In[10]:
+# hr_tf = {}
+# mrr_tf = {}
+# C_tf = {}
+# for lmbda in tqdm(lambda_grid):
+#     easer_params = easer(training, data_description, lmbda=lmbda)
+#     easer_scores = easer_scoring(easer_params, testset_valid, data_description)
+#     downvote_seen_items(easer_scores, testset_valid, data_description)
+#     easer_recs = topn_recommendations(easer_scores, topn=10)
+#     hr, hr_pos, hr_neg, mrr, mrr_pos, mrr_neg, cov, C = model_evaluate(easer_recs, holdout_valid, data_description, alpha=3, topn=10, dcg=False)
+#     hr_tf[lmbda] = hr
+#     mrr_tf[lmbda] = mrr
+#     C_tf[lmbda] = C
 
 
-hr_sorted = sorted(hr_tf, key=hr_tf.get, reverse=True)
-for i in range(5):
-    print(hr_sorted[i], hr_tf[hr_sorted[i]])
+# # In[10]:
 
 
-# In[11]:
+# hr_sorted = sorted(hr_tf, key=hr_tf.get, reverse=True)
+# for i in range(5):
+#     print(hr_sorted[i], hr_tf[hr_sorted[i]])
 
 
-mrr_sorted = sorted(mrr_tf, key=mrr_tf.get, reverse=True)
-for i in range(5):
-    print(mrr_sorted[i], mrr_tf[mrr_sorted[i]])
+# # In[11]:
 
 
-# In[12]:
+# mrr_sorted = sorted(mrr_tf, key=mrr_tf.get, reverse=True)
+# for i in range(5):
+#     print(mrr_sorted[i], mrr_tf[mrr_sorted[i]])
 
 
-C_sorted = sorted(C_tf, key=C_tf.get, reverse=True)
-for i in range(5):
-    print(C_sorted[i], C_tf[C_sorted[i]])
+# # In[12]:
 
 
-# # Test metrics
-
-# In[18]:
-
-
-data_description = dict(
-    users = data_index['users'].name,
-    items = data_index['items'].name,
-    feedback = 'rating',
-    n_users = len(data_index['users']),
-    n_items = len(data_index['items']),
-    n_ratings = training['rating'].nunique(),
-    min_rating = training['rating'].min(),
-    test_users = holdout[data_index['users'].name].drop_duplicates().values,
-    n_test_users = holdout[data_index['users'].name].nunique()
-)
+# C_sorted = sorted(C_tf, key=C_tf.get, reverse=True)
+# for i in range(5):
+#     print(C_sorted[i], C_tf[C_sorted[i]])
 
 
-# ## EASEr
+# # # Test metrics
 
-# In[ ]:
+# # In[18]:
 
 
-easer_params = easer(training, data_description, lmbda=C_sorted[i])
-easer_scores = easer_scoring(easer_params, testset, data_description)
-downvote_seen_items(easer_scores, testset, data_description)
+# data_description = dict(
+#     users = data_index['users'].name,
+#     items = data_index['items'].name,
+#     feedback = 'rating',
+#     n_users = len(data_index['users']),
+#     n_items = len(data_index['items']),
+#     n_ratings = training['rating'].nunique(),
+#     min_rating = training['rating'].min(),
+#     test_users = holdout[data_index['users'].name].drop_duplicates().values,
+#     n_test_users = holdout[data_index['users'].name].nunique()
+# )
 
-make_prediction(easer_scores, holdout, data_description, mode='Test')
+
+# # ## EASEr
+
+# # In[ ]:
+
+
+# easer_params = easer(training, data_description, lmbda=C_sorted[i])
+# easer_scores = easer_scoring(easer_params, testset, data_description)
+# downvote_seen_items(easer_scores, testset, data_description)
+
+# make_prediction(easer_scores, holdout, data_description, mode='Test')
 
 
