@@ -705,7 +705,7 @@ def full_pipeline(config, training, data_description, testset_valid, holdout_val
 
 
 attention_matrix = np.eye(5)
-full_pipeline(config, training, data_description, testset_valid, holdout_valid, testset, holdout, attention_matrix=attention_matrix, factor = float(for_mc.split(",")[1][3:]))
+full_pipeline(config, training, data_description, testset_valid, holdout_valid, testset, holdout, attention_matrix=attention_matrix, factor = factor)
 
 
 # ## Attention matrix
@@ -765,7 +765,7 @@ for mode in modes:
     print(f"FOR matrix - {mode}")
     similarity_matrix = get_similarity_matrix(mode, data_description["n_ratings"])
     attention_matrix = sqrtm(similarity_matrix).real
-    full_pipeline(config, training, data_description, testset_valid, holdout_valid, testset, holdout, attention_matrix=attention_matrix, factor = float(for_mc.split(",")[1][3:]))
+    full_pipeline(config, training, data_description, testset_valid, holdout_valid, testset, holdout, attention_matrix=attention_matrix, factor = factor)
     print("_____________________________________________________")
 
 
