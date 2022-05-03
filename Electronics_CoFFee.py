@@ -757,16 +757,16 @@ def get_similarity_matrix(mode, n_ratings = 10):
 
 # In[ ]:
 
-matrices = []
-config["params"] = {}
-modes = ["sigmoid", "arctan"] #  "linear", "sq3", 
+# matrices = []
+# config["params"] = {}
+# modes = ["sigmoid", "arctan"] #  "linear", "sq3", 
 
-for mode in modes:
-    print(f"FOR matrix - {mode}")
-    similarity_matrix = get_similarity_matrix(mode, data_description["n_ratings"])
-    attention_matrix = sqrtm(similarity_matrix).real
-    full_pipeline(config, training, data_description, testset_valid, holdout_valid, testset, holdout, attention_matrix=attention_matrix, factor = factor)
-    print("_____________________________________________________")
+# for mode in modes:
+#     print(f"FOR matrix - {mode}")
+#     similarity_matrix = get_similarity_matrix(mode, data_description["n_ratings"])
+#     attention_matrix = sqrtm(similarity_matrix).real
+#     full_pipeline(config, training, data_description, testset_valid, holdout_valid, testset, holdout, attention_matrix=attention_matrix, factor = factor)
+#     print("_____________________________________________________")
 
 
 # In[ ]:
