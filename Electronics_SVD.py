@@ -215,9 +215,9 @@ def model_evaluate(recommended_items, holdout, holdout_description, alpha=3, top
 def make_prediction(tf_scores, holdout, data_description, mode, context="", print_mode=True):
     if (mode and print_mode):
         print(f"for context {context} evaluation ({mode}): \n")
+    tf_recs = topn_recommendations(tf_scores, 20)
     for n in [5, 10, 20]:
-        tf_recs = topn_recommendations(tf_scores, n)
-        hr, hr_pos, hr_neg, mrr, mrr_pos, mrr_neg, cov, C = model_evaluate(tf_recs, holdout, data_description, topn=n)
+        hr, hr_pos, hr_neg, mrr, mrr_pos, mrr_neg, cov, C = model_evaluate(tf_recs[:, :n], holdout, data_description, topn=n)
         if (print_mode):
             print(f"HR@{n} = {hr:.4f}, MRR@{n} = {mrr:.4f}, Coverage@{n} = {cov:.4f}")
             print(f"HR_pos@{n} = {hr_pos:.4f}, HR_neg@{n} = {hr_neg:.4f}")
