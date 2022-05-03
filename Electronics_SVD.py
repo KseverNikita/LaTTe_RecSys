@@ -310,9 +310,9 @@ def build_svd_model(config, data, data_description):
     D = norm(source_matrix, axis=0)
     A = source_matrix.dot(diags(D**(config['f']-1)))
 
-    _, _, vt = svds(A, n_components=config['rank'], random_state=42)
+    _, _, vt = svds(A, n_components=config['rank'], random_state=42, transpose=False)
 #     singular_values = s[::-1]
-    item_factors = np.ascontiguousarray(vt[::-1, :].T)
+    item_factors = np.ascontiguousarray(vt[:, :].T)
     return item_factors
 
 def svd_model_scoring(params, data, data_description):
