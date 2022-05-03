@@ -630,7 +630,7 @@ def full_pipeline(config, training, data_description, testset_valid, holdout_val
     
     seen_data = testset_valid
     
-    for mlrank in tf_grid:
+    for mlrank in tqdm(tf_grid):
         with io.capture_output() as captured:
             r1, r3 = mlrank[1:]
             cur_mlrank = tuple((r1, r1, r3))
