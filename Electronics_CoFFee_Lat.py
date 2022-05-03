@@ -611,7 +611,7 @@ def full_pipeline(config, training, data_description, testset_valid, holdout_val
     
     rank_grid = np.array(rank_grid)
     tf_hyper = {
-    'scaling': [factor] if factor else [0.6], #np.linspace(0, 2, 21),
+    'scaling': [factor] if factor else [0.5], #np.linspace(0, 2, 21),
     'r1': rank_grid, #np.arange(100, 220, 25),
     #'r2': np.arange(50, 801, 25),
     'r3': range(2, 6, 1)#range(2, 11, 2), # change
