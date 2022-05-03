@@ -295,6 +295,9 @@ def popularity_model_scoring(params, testset, testset_description):
 # In[8]:
 
 
+from sklearn.utils.extmath import randomized_svd
+svds = randomized_svd
+
 def matrix_from_observations(data, data_description):
     useridx = data[data_description['users']]
     itemidx = data[data_description['items']]
@@ -306,7 +309,8 @@ def build_svd_model(config, data, data_description):
     #print(source_matrix.shape)
     D = norm(source_matrix, axis=0)
     A = source_matrix.dot(diags(D**(config['f']-1)))
-    _, _, vt = svds(A, k=config['rank'], return_singular_vectors='vh')
+
+    _, _, vt = svds(A, n_components=config['rank'], random_state=42)
 #     singular_values = s[::-1]
     item_factors = np.ascontiguousarray(vt[::-1, :].T)
     return item_factors
@@ -343,18 +347,18 @@ f_grid = np.linspace(0, 2, 21)
 hr_tf = {}
 mrr_tf = {}
 C_tf = {}
-grid = list(zip(np.meshgrid(rank_grid, f_grid)[0].flatten(), np.meshgrid(rank_grid, f_grid)[1].flatten()))
-for params in grid:
-    r, f = params
-    svd_config = {'rank': int(r), 'f': f}
+#grid = list(zip(np.meshgrid(rank_grid, f_grid)[0].flatten(), np.meshgrid(rank_grid, f_grid)[1].flatten()))
+for f in tqdm(f_grid):
+    svd_config = {'rank': rank_grid[-1], 'f': f}
     svd_params = build_svd_model(svd_config, training, data_description)
-    svd_scores = svd_model_scoring(svd_params, testset_valid, data_description)
-    downvote_seen_items(svd_scores, testset_valid, data_description)
-    svd_recs = topn_recommendations(svd_scores, topn=10)
-    hr, hr_pos, hr_neg, mrr, mrr_pos, mrr_neg, cov, C = model_evaluate(svd_recs, holdout_valid, data_description, alpha=3, topn=10, dcg=False)
-    hr_tf[f'r={r}, f={f:.2f}'] = hr
-    mrr_tf[f'r={r}, f={f:.2f}'] = mrr
-    C_tf[f'r={r}, f={f:.2f}'] = C
+    for r in rank_grid:
+        svd_scores = svd_model_scoring(svd_params[:, :r], testset_valid, data_description)
+        downvote_seen_items(svd_scores, testset_valid, data_description)
+        svd_recs = topn_recommendations(svd_scores, topn=10)
+        hr, hr_pos, hr_neg, mrr, mrr_pos, mrr_neg, cov, C = model_evaluate(svd_recs, holdout_valid, data_description, alpha=3, topn=10, dcg=False)
+        hr_tf[f'r={r}, f={f:.2f}'] = hr
+        mrr_tf[f'r={r}, f={f:.2f}'] = mrr
+        C_tf[f'r={r}, f={f:.2f}'] = C
 
 
 # In[12]:
